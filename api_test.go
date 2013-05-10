@@ -118,8 +118,8 @@ func TestGetImagesJson(t *testing.T) {
 
 	srv := &Server{runtime: runtime}
 
-	// FIXME: Do more tests with filter
-	req, err := http.NewRequest("GET", "/images/json?quiet=0&all=0", nil)
+	// only_ids=0&all=0
+	req, err := http.NewRequest("GET", "/images/json?only_ids=0&all=0", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,6 +141,56 @@ func TestGetImagesJson(t *testing.T) {
 
 	if images[0].Repository != "docker-ut" {
 		t.Errorf("Excepted image docker-ut, %s found", images[0].Repository)
+	}
+
+	// only_ids=1&all=1
+	req2, err := http.NewRequest("GET", "/images/json?only_ids=1&all=1", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body2, err := getImagesJson(srv, nil, req2, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	images2 := []ApiImages{}
+	err = json.Unmarshal(body2, &images2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(images2) != 1 {
+		t.Errorf("Excepted 1 image, %d found", len(images2))
+	}
+
+	if images2[0].Repository != "" {
+		t.Errorf("Excepted no image Repository, %s found", images2[0].Repository)
+	}
+
+	if images2[0].Id == "" {
+		t.Errorf("Excepted image Id, %s found", images2[0].Id)
+	}
+
+	// filter=a
+	req3, err := http.NewRequest("GET", "/images/json?filter=a", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body3, err := getImagesJson(srv, nil, req3, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	images3 := []ApiImages{}
+	err = json.Unmarshal(body3, &images3)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(images3) != 0 {
+		t.Errorf("Excepted 1 image, %d found", len(images3))
 	}
 }
 
